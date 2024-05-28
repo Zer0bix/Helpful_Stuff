@@ -13,7 +13,7 @@
 import sys
 import io
 
-from settings import variables, str_variables, str_comma_variables, private, name, create_file, file_name, file_path
+from settings import variables, str_variables, str_comma_variables, private, name, create_file, file_name, file_path, camelCase
 
 # Generate variables if it's empty
 if not variables:
@@ -22,44 +22,37 @@ if not variables:
     else:
         variables = str_variables.split(" ")
 
+# Work out number of private/proctected/public
+if private == "private":
+    private_count = "__"
+elif private == "protected":
+    private_count = "_"
+else:
+    private_count = ""
 
 def get(var, indent_count):
-    global private
-    if private == "private":
-        print(tab*indent_count + f"def get{var[0].upper() + var[1:]}(self):\n" + tab*indent_count + tab + f"return self.__{var}")
-    elif private == "protected":
-        print(tab*indent_count + f"def get{var[0].upper() + var[1:]}(self):\n" + tab*indent_count + tab + f"return self._{var}")
+    global private, camelCase, private_count
+    if not camelCase:
+        print(tab*indent_count + f"def get_{var}(self):\n" + tab*indent_count + tab + f"return self.{private_count}{var}")
     else:
-        print(tab*indent_count + f"def get{var[0].upper() + var[1:]}(self):\n" + tab*indent_count + tab + f"return self.{var}")
+        print(tab*indent_count + f"def get{var[0].upper() + var[1:]}(self):\n" + tab*indent_count + tab + f"return self.{private_count}{var}")
     
 
 def set(var, indent_count):
-    global private
-    if private == "private":
-        print(tab*indent_count + f"def set{var[0].upper() + var[1:]}(self, {var}):\n" + tab*indent_count + tab + f"self.__{var} = {var}")
-    elif private == "protected":
-        print(tab*indent_count + f"def set{var[0].upper() + var[1:]}(self, {var}):\n" + tab*indent_count + tab + f"self._{var} = {var}")
+    global private, camelCase, private_count
+    if not camelCase:
+        print(tab*indent_count + f"def set_{var}(self, {var}):\n" + tab*indent_count + tab + f"self.{private_count}{var} = {var}")
     else:
-        print(tab*indent_count + f"def set{var[0].upper() + var[1:]}(self, {var}):\n" + tab*indent_count + tab + f"self.{var} = {var}")
+        print(tab*indent_count + f"def set{var[0].upper() + var[1:]}(self, {var}):\n" + tab*indent_count + tab + f"self.{private_count}{var} = {var}")
 
 def define(var, indent_count):
     global private
-    if private == "private":
-        print(tab*indent_count + f"__{var} = None")
-    elif private == "protected":
-        print(tab*indent_count + f"_{var} = None")
-    else:
-        print(tab*indent_count + f"{var} = None")
+    print(tab*indent_count + f"{private_count}{var} = None")
 
 def initiate(var, indent_count):
     global private
-    if private == "private":
-        print(tab*(1+indent_count) + f"self.__{var} = {var}")
-    elif private == "protected":
-        print(tab*(1+indent_count) + f"self._{var} = {var}")
-    else:
-        print(tab*(1+indent_count) + f"self.{var} = {var}")
-    
+    print(tab*(1+indent_count) + f"self.{private_count}{var} = {var}")
+
 
 # Settings for the builder
 # variables = ["height", "body_colour", "legs_count", "eye_colour", "age", "name", "type"]  # Make a list of strings that are the variables you wish the class to have
@@ -89,7 +82,6 @@ for var in variables:
     else:
         print(f"{var} = None)", end="")
 print(":")
-# print(str(variables[:]).replace("[", "").replace("]", "").replace("'", ""), end="", sep=", ")
 print()
 for var in variables:
     initiate(var, indent_count)
